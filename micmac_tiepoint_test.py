@@ -7,7 +7,16 @@ import cv2
 import matplotlib.pyplot as plt
 import pip
 # python3 -m pip install "gdown"
+# python3 -m pip install "scikit-image"
 import gdown
+
+
+####################
+# !!!!!!!!!! to resize all images using % method
+# using ImageMagick
+####################
+# navigate to folder with images
+# os.system('mogrify -resize 30%  *.tif')
 
 # download data
 os.getcwd()
@@ -32,6 +41,7 @@ gdown.download(utils_url, 'mm3d_utils.py', quiet=False)
 
 
 os.chdir('/Users/Shared/data/usfs/micmac_tiepoint_test/content/historical_data')
+
 ##############################################################
 # Epoch 1
 ##############################################################
@@ -195,4 +205,18 @@ plt.show()
 
 os.system('mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1971.*tif 1971 NbVI=2 MasqImGlob=Fiducial_marks_masq-1971-3.tif DirMEC=MEC-Malt_1971 EZA=1 ZoomF=2 DoOrtho=0')
 
+##############################################################
+# Inter-epoch processing
+##############################################################
 
+# Use the TiePHistoP program to launch the automated inter-epoch processing pipeline.
+# The input, output and parameter interpretation of the command "TiePHistoP" are listed below:
+
+############
+# Option 1: SuperGlue
+############
+# This command will produce 2 kinds of results:
+# (1) roughly co-registered orientations, which will be stored in the folder "./Ori-1981";
+# (2) inter-epoch tie-points, which will be stored in the folder "./Homol-SuperGlue-3DRANSAC-CrossCorrelation".
+
+os.system('mm3d TiePHistoP Ori-1971 Ori-1981 ImgList1971all.txt ImgList1981all.txt MEC-Malt_1971 MEC-Malt_1981 CoRegPatchLSz=[1280,960] CoRegPatchRSz=[1280,960] PrecisePatchSz=[1280,960] Feature=SuperGlue')
