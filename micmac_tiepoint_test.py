@@ -10,7 +10,6 @@ import pip
 # python3 -m pip install "scikit-image"
 import gdown
 
-
 ####################
 # !!!!!!!!!! to resize all images using % method
 # using ImageMagick
@@ -219,6 +218,20 @@ os.system('mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1971.*tif 1971 NbVI=2 MasqImG
 # (1) roughly co-registered orientations, which will be stored in the folder "./Ori-1981";
 # (2) inter-epoch tie-points, which will be stored in the folder "./Homol-SuperGlue-3DRANSAC-CrossCorrelation".
 
+
+# !!!!!!!!!!!!!!! to get the below to work...needed to 
+# update TPHistoDir="/Users/Shared/data/micmac/src/uti_phgrm/TiePHistorical/" in:
+# /Users/Shared/data/micmac/src/uti_phgrm/TiePHistorical/run.sh
+# and update PYTHON_PATH=/usr/bin/python3 in:
+# /Users/Shared/data/micmac/src/uti_phgrm/TiePHistorical/install.sh
+
+# Create virtualenv, clone SuperGluePretrainedNetwork and install depedencies
+os.chdir('/Users/Shared/data/micmac/src/uti_phgrm/TiePHistorical/')
+os.system('bash ./install.sh /usr/local/bin/python')
+
+
+os.chdir('/Users/Shared/data/usfs/micmac_tiepoint_test/content/historical_data')
+
 os.system('mm3d TiePHistoP Ori-1971 Ori-1981 ImgList1971all.txt ImgList1981all.txt MEC-Malt_1971 MEC-Malt_1981 CoRegPatchLSz=[1280,960] CoRegPatchRSz=[1280,960] PrecisePatchSz=[1280,960] Feature=SuperGlue')
 
 ############
@@ -273,7 +286,7 @@ os.system('mm3d TiePHistoP Ori-1971 Ori-1981 ImgList1971all.txt ImgList1981all.t
 # os.system('mm3d TiePHistoP Ori-1971 Ori-1981 ImgList1971all.txt ImgList1981all.txt MEC-Malt_1971 MEC-Malt_1981 PrecisePatchSz=[1280,960] Feature=SIFT SkipCoReg=1  SkipGetPatchPair=1')
 
 # # not sure what this call is for 
-# # os.system('!mm3d TiePHistoP Ori-1971 Ori-1981 OIS-Reech_IGNF_PVA_1-0__1971-06-21__C2844-0141_1971_FR2117_1018.tif OIS-Reech_IGNF_PVA_1-0__1981-06-16__C2544-0021_1981_F2544-2644_0083.tif MEC-Malt_1971 MEC-Malt_1981 PrecisePatchSz=[1280,960] Feature=SIFT SkipCoReg=1  SkipGetPatchPair=0 CCTh=0.1')
+# # os.system('mm3d TiePHistoP Ori-1971 Ori-1981 OIS-Reech_IGNF_PVA_1-0__1971-06-21__C2844-0141_1971_FR2117_1018.tif OIS-Reech_IGNF_PVA_1-0__1981-06-16__C2544-0021_1981_F2544-2644_0083.tif MEC-Malt_1971 MEC-Malt_1981 PrecisePatchSz=[1280,960] Feature=SIFT SkipCoReg=1  SkipGetPatchPair=0 CCTh=0.1')
 
 ##############################################################
 # 3. Evaluation
@@ -295,12 +308,29 @@ os.system('mm3d TiePHistoP Ori-1971 Ori-1981 ImgList1971all.txt ImgList1981all.t
 # As the co-registered orientations are based on the reference of epoch 1981, we can use directly the DSM of epoch 1981 resulted from section 1.3.1
 
 # Get DSM of epoch 1971
-!mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1971.*tif 1981 NbVI=2 DirMEC=MEC-Malt_1971_CoReg EZA=1 MasqImGlob=Fiducial_marks_masq-1971-3.tif ZoomF=4 DoOrtho=0
+os.system('mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1971.*tif 1981 NbVI=2 DirMEC=MEC-Malt_1971_CoReg EZA=1 MasqImGlob=Fiducial_marks_masq-1971-3.tif ZoomF=4 DoOrtho=0')
+
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ results in error:
+# ------------------------------------------------------------
+# |   Sorry, the following FATAL ERROR happened               
+# |                                                           
+# |    cannot get cInterfChantierNameManipulateur::StdCamGenOfNames
+# |                                                           
+# ------------------------------------------------------------
+# -------------------------------------------------------------
+# |       (Elise's)  LOCATION :                                
+# |                                                            
+# | Error was detected
+# |          at line : 1984
+# |          of file : /Users/Shared/data/micmac/src/photogram/phgr_basic.cpp
+# -------------------------------------------------------------
+# Bye  (press enter)
+
 
 #### Calculate DoD
 # We use the command "CmpIm" to generate the DoD.
 
-!mm3d CmpIm MEC-Malt_1971_CoReg/Z_Num7_DeZoom4_STD-MALT.tif MEC-Malt_1981/Z_Num8_DeZoom2_STD-MALT.tif UseFOM=1 FileDiff=DoD-CoReg.tif 16Bit=1
+os.system('mm3d CmpIm MEC-Malt_1971_CoReg/Z_Num7_DeZoom4_STD-MALT.tif MEC-Malt_1981/Z_Num8_DeZoom2_STD-MALT.tif UseFOM=1 FileDiff=DoD-CoReg.tif 16Bit=1')
 
 #### Visualize DoD
 # The resulted DoD is visulized below:
@@ -339,35 +369,33 @@ os.system('mm3d TiePHistoP Ori-1971 Ori-1981 ImgList1971all.txt ImgList1981all.t
 # Set weight of inter-epoch tie-points
 # First of all, we use the command "TestLib TiePtAddWeight" to set the weight of the inter-epoch tie-points to be 10, so that they will play a more important role in BA. (Please notice that the weight of the intra-epoch tie-points is by default 1.)
 
-!mm3d TestLib TiePtAddWeight 10 InSH=-SuperGlue-3DRANSAC-CrossCorrelation
-
+os.system('mm3d TestLib TiePtAddWeight 10 InSH=-SuperGlue-3DRANSAC-CrossCorrelation')
 # Txt to binary conversion
 # The SuperGlue inter-epoch tie-points we got are in txt format, we should transform them into binary format with the help of "HomolFilterMasq", so that they can be recognized in the following process.
 
-!mm3d HomolFilterMasq "O.*tif" PostIn=-SuperGlue-3DRANSAC-CrossCorrelation-W10 PostOut=-SuperGlue-3DRANSAC-CrossCorrelation-W10-dat ANM=1 ExpTxt=1 ExpTxtOut=0
+os.system('mm3d HomolFilterMasq "O.*tif" PostIn=-SuperGlue-3DRANSAC-CrossCorrelation-W10 PostOut=-SuperGlue-3DRANSAC-CrossCorrelation-W10-dat ANM=1 ExpTxt=1 ExpTxtOut=0')
 
 # Merge intra- and inter-epoch tie-points
 # Then we need to merge the intra- and inter-epoch tie-points from different folders together using the command "MergeHomol".
 
-!mm3d MergeHomol "Homol_1971-Ratafia|Homol_1981-Ratafia|Homol-SuperGlue-3DRANSAC-CrossCorrelation-W10-dat" Homol_Merged-SuperGlue
+os.system('mm3d MergeHomol "Homol_1971-Ratafia|Homol_1981-Ratafia|Homol-SuperGlue-3DRANSAC-CrossCorrelation-W10-dat" Homol_Merged-SuperGlue')
 
 # Run bundle adjustment
 # Now it is time to run BA with the command "Campari".
 
-!mm3d Campari "O.*tif" 1981 Campari_Refined-SuperGlue SH=_Merged-SuperGlue AllFree=1 NbIterEnd=20 SigmaTieP=0.25 
-
+os.system('mm3d Campari "O.*tif" 1981 Campari_Refined-SuperGlue SH=_Merged-SuperGlue AllFree=1 NbIterEnd=20 SigmaTieP=0.25 ')
 # Get DSM of epoch 1981
 
-!mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1981.*tif Campari_Refined-SuperGlue NbVI=2 DirMEC=MEC-Malt_1981_Refined-SuperGlue EZA=1 MasqImGlob=Fiducial_marks_masq-1981-3.tif ZoomF=2 DoOrtho=0
+os.system('mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1981.*tif Campari_Refined-SuperGlue NbVI=2 DirMEC=MEC-Malt_1981_Refined-SuperGlue EZA=1 MasqImGlob=Fiducial_marks_masq-1981-3.tif ZoomF=2 DoOrtho=0')
 
 # Get DSM of epoch 1971
 
-!mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1971.*tif Campari_Refined-SuperGlue NbVI=2 DirMEC=MEC-Malt_1971_Refined-SuperGlue MasqImGlob=Fiducial_marks_masq-1971-3.tif EZA=1 ZoomF=4 DoOrtho=0
+os.system('mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1971.*tif Campari_Refined-SuperGlue NbVI=2 DirMEC=MEC-Malt_1971_Refined-SuperGlue MasqImGlob=Fiducial_marks_masq-1971-3.tif EZA=1 ZoomF=4 DoOrtho=0')
 
 #### Calculate DoD
 # Finally we use the command "CmpIm" to generate the DoD.
 
-!mm3d CmpIm MEC-Malt_1971_Refined-SuperGlue/Z_Num7_DeZoom4_STD-MALT.tif MEC-Malt_1981_Refined-SuperGlue/Z_Num8_DeZoom2_STD-MALT.tif UseFOM=1 FileDiff=DoD-Refined-SuperGlue.tif 16Bit=1
+os.system('mm3d CmpIm MEC-Malt_1971_Refined-SuperGlue/Z_Num7_DeZoom4_STD-MALT.tif MEC-Malt_1981_Refined-SuperGlue/Z_Num8_DeZoom2_STD-MALT.tif UseFOM=1 FileDiff=DoD-Refined-SuperGlue.tif 16Bit=1')
 
 
 #### Visualize DoD
@@ -408,37 +436,35 @@ os.system('mm3d TiePHistoP Ori-1971 Ori-1981 ImgList1971all.txt ImgList1981all.t
 # Set weight of inter-epoch tie-points
 # First of all, we use the command "TestLib TiePtAddWeight" to set the weight of the inter-epoch tie-points to be 10, so that they will play a more important role in BA. (Please notice that the weight of the intra-epoch tie-points is by default 1.)
 
-!mm3d TestLib TiePtAddWeight 10 InSH=-GuidedSIFT-3DRANSAC-CrossCorrelation
-
+os.system('mm3d TestLib TiePtAddWeight 10 InSH=-GuidedSIFT-3DRANSAC-CrossCorrelation')
 # Txt to binary conversion
 # The SIFT inter-epoch tie-points we got are in txt format, we should transform them into binary format with the help of "HomolFilterMasq", so that they can be recognized in the following process.
 
-!mm3d HomolFilterMasq "O.*tif" PostIn=-GuidedSIFT-3DRANSAC-CrossCorrelation-W10 PostOut=-GuidedSIFT-3DRANSAC-CrossCorrelation-W10-dat ANM=1 ExpTxt=1 ExpTxtOut=0
+os.system('mm3d HomolFilterMasq "O.*tif" PostIn=-GuidedSIFT-3DRANSAC-CrossCorrelation-W10 PostOut=-GuidedSIFT-3DRANSAC-CrossCorrelation-W10-dat ANM=1 ExpTxt=1 ExpTxtOut=0')
 
 # Merge intra- and inter-epoch tie-points
 # Then we need to merge the intra- and inter-epoch tie-points from different folders together using the command "MergeHomol".
 
-!mm3d MergeHomol "Homol_1971-Ratafia|Homol_1981-Ratafia|Homol-SuperGlue-3DRANSAC-CrossCorrelation-W10-dat" Homol_Merged-GuidedSIFT
+os.system('mm3d MergeHomol "Homol_1971-Ratafia|Homol_1981-Ratafia|Homol-SuperGlue-3DRANSAC-CrossCorrelation-W10-dat" Homol_Merged-GuidedSIFT')
 
 # Run bundle adjustment
 # Now it is time to run BA with the command "Campari".
 
-!mm3d Campari "O.*tif" 1981 Campari_Refined-GuidedSIFT SH=_Merged-GuidedSIFT AllFree=1 NbIterEnd=20 SigmaTieP=0.25 
-
+os.system('mm3d Campari "O.*tif" 1981 Campari_Refined-GuidedSIFT SH=_Merged-GuidedSIFT AllFree=1 NbIterEnd=20 SigmaTieP=0.25 ')
 # Get DSM of epoch 1981
 # Based on the GuidedSIFT refined orientations "Campari_Refined-GuidedSIFT", we compute the DSMs in epoch 1981 using the command "Malt":
 
-!mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1981.*tif Campari_Refined-GuidedSIFT NbVI=2 DirMEC=MEC-Malt_1981_Refined-GuidedSIFT EZA=1 MasqImGlob=Fiducial_marks_masq-1981-3.tif ZoomF=2 DoOrtho=0
+os.system('mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1981.*tif Campari_Refined-GuidedSIFT NbVI=2 DirMEC=MEC-Malt_1981_Refined-GuidedSIFT EZA=1 MasqImGlob=Fiducial_marks_masq-1981-3.tif ZoomF=2 DoOrtho=0')
 
 # Get DSM of epoch 1971
 # Based on the GuidedSIFT refined orientations "Campari_Refined-GuidedSIFT", we compute the DSMs in epoch 1971 using the command "Malt":
 
-!mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1971.*tif Campari_Refined-GuidedSIFT NbVI=2 DirMEC=MEC-Malt_1971_Refined-GuidedSIFT EZA=1 MasqImGlob=Fiducial_marks_masq-1971-3.tif ZoomF=4 DoOrtho=0
+os.system('mm3d Malt Ortho OIS-Reech_IGNF_PVA_1-0__1971.*tif Campari_Refined-GuidedSIFT NbVI=2 DirMEC=MEC-Malt_1971_Refined-GuidedSIFT EZA=1 MasqImGlob=Fiducial_marks_masq-1971-3.tif ZoomF=4 DoOrtho=0')
 
 # Calculate DoD
 # Finally we use the command "CmpIm" to generate the DoD.
 
-!mm3d CmpIm MEC-Malt_1971_Refined-GuidedSIFT/Z_Num7_DeZoom4_STD-MALT.tif MEC-Malt_1981_Refined-GuidedSIFT/Z_Num8_DeZoom2_STD-MALT.tif UseFOM=1 FileDiff=DoD-Refined-GuidedSIFT.tif 16Bit=1
+os.system('mm3d CmpIm MEC-Malt_1971_Refined-GuidedSIFT/Z_Num7_DeZoom4_STD-MALT.tif MEC-Malt_1981_Refined-GuidedSIFT/Z_Num8_DeZoom2_STD-MALT.tif UseFOM=1 FileDiff=DoD-Refined-GuidedSIFT.tif 16Bit=1')
 
 # Visualize DoD
 # The resulted DoD is visulized and compared to the other DoDs below:
@@ -472,3 +498,9 @@ os.system('mm3d TiePHistoP Ori-1971 Ori-1981 ImgList1971all.txt ImgList1981all.t
 
 # mm3d_utils.plot_DoD([np.asarray(aIm1), np.asarray(aIm2), np.asarray(aIm3)])
 # print('            DoD-CoReg                DoD-Refined-SuperGlue                DoD-Refined-GuidedSIFT')
+
+
+# As can be seen in the visualized DoDs, the systematic errors are effectively mitigated in the DoD of SuperGlue and SIFT refined result, thanks to our dense and precise inter-epoch tie-points.
+
+# We chose a small region to keep the dataset compact to improve the processing efficiency of this tutorial. The performance of our method might improve when applied to bigger regions.
+
